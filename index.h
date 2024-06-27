@@ -266,37 +266,24 @@ const char *HTML_CONTENT = R"=====(
             ws = null;
         }
 
+        // SEND DATA AS A jsonArray to server(esp8266 nodemcu board)
+        function senddata(itemnum, stvalue){
+            var array = [itemnum, stvalue];
+            var jsonArray = JSON.stringify(array);
+            ws.send(jsonArray);
+        }
 
-        // function item1func(){
-        //     let state = document.getElementById("item1state");
-        //     let item1btn = document.getElementById("item1btn");
+        function onofffunc(num){
+            let st = "item"+num+"state";
+            let btn = "item"+num+"btn";
+            let itemnum = "item"+num;
 
-        //     if (item1btn.value=="on"){
-        //         state.classList.remove("offstate");
-        //         state.classList.add("onstate");
-        //         state.innerHTML="ON";
-        //         item1btn.innerHTML="turn off";
-        //         item1btn.value="off";
-        //         st=1;
-        //         console.log(item1btn.value);
-        //     }else{
-        //         state.classList.remove("onstate");
-        //         state.classList.add("offstate");
-        //         state.innerHTML="OFF";
-        //         item1btn.innerHTML="turn on";
-        //         item1btn.value="on";
-        //         st=0;
-        //         console.log(item1btn.value);
-        //     }
-        // }
-
-        function onofffunc(st, btn, itemnum){
             let state = document.getElementById(st);
             let itembtn = document.getElementById(btn);
 
             if (itembtn.value=="on"){
                 itembtn.innerHTML="turn off";
-                ws.send(itemnum+itembtn.value);
+                senddata(itemnum, itembtn.value);
                 itembtn.value="off";
 
                 // state.classList.remove("offstate");
@@ -308,7 +295,7 @@ const char *HTML_CONTENT = R"=====(
             }else{
 
                 itembtn.innerHTML="turn on";
-                ws.send(itemnum+itembtn.value);
+                senddata(itemnum, itembtn.value);
                 itembtn.value="on";
 
                 // state.classList.remove("onstate");
@@ -319,28 +306,28 @@ const char *HTML_CONTENT = R"=====(
             }
         }
 
-        function onoffcommon(item){
-            switch(item){
-                case 1:
-                    onofffunc("item1state", "item1btn", "item1");
-                    break;
-                case 2:
-                    onofffunc("item2state", "item2btn", "item2");
-                    break;
-                case 3:
-                    onofffunc("item3state", "item3btn", "item3");
-                    break;
-                case 4:
-                    onofffunc("item4state", "item4btn", "item4");
-                    break;
-                case 5:
-                    onofffunc("item5state", "item5btn", "item5");
-                    break;
-                case 6:
-                    onofffunc("item6state", "item6btn", "item6");
-                    break;
-            }
-        }
+        // function onoffcommon(item){
+        //     switch(item){
+        //         case 1:
+        //             onofffunc("item1state", "item1btn", "item1");
+        //             break;
+        //         case 2:
+        //             onofffunc("item2state", "item2btn", "item2");
+        //             break;
+        //         case 3:
+        //             onofffunc("item3state", "item3btn", "item3");
+        //             break;
+        //         case 4:
+        //             onofffunc("item4state", "item4btn", "item4");
+        //             break;
+        //         case 5:
+        //             onofffunc("item5state", "item5btn", "item5");
+        //             break;
+        //         case 6:
+        //             onofffunc("item6state", "item6btn", "item6");
+        //             break;
+        //     }
+        // }
 
 
 
@@ -348,43 +335,15 @@ const char *HTML_CONTENT = R"=====(
         function ws_onmessage(e_msg) {
             e_msg = e_msg || window.event; // MessageEvent
             console.log(e_msg.data);
-            if(e_msg.data == "item1off"){
-                updateOnOff("item1state", "item1btn", "off");
+            
+            var msg = e_msg.data;
 
-            }else if(e_msg.data == "item1on"){
-                updateOnOff("item1state", "item1btn", "on");
+            var arraymsg = JSON.parse(msg);
 
-            }else if(e_msg.data == "item2off"){
-                updateOnOff("item2state", "item2btn", "off");
-
-            }else if(e_msg.data == "item2on"){
-                updateOnOff("item2state", "item2btn", "on");
-
-            }else if(e_msg.data == "item3off"){
-                updateOnOff("item3state", "item3btn", "off");
-
-            }else if(e_msg.data == "item3on"){
-                updateOnOff("item3state", "item3btn", "on");
-
-            }else if(e_msg.data == "item4off"){
-                updateOnOff("item4state", "item4btn", "off");
-
-            }else if(e_msg.data == "item4on"){
-                updateOnOff("item4state", "item4btn", "on");
-
-            }else if(e_msg.data == "item5off"){
-                updateOnOff("item5state", "item5btn", "off");
-                
-            }else if(e_msg.data == "item5on"){
-                updateOnOff("item5state", "item5btn", "on");
-
-            }else if(e_msg.data == "item6off"){
-                updateOnOff("item6state", "item6btn", "off");
-
-            }else if(e_msg.data == "item6on"){
-                updateOnOff("item6state", "item6btn", "on");
-            }
-
+            let upItemState = arraymsg[0]+"state";
+            let upItemBtn = arraymsg[0]+"btn";
+            let upState = arraymsg[1];
+            updateOnOff(upItemState, upItemBtn, upState);
         }
 
         function updateOnOff(itemSt, itemBtn ,upst){
@@ -468,37 +427,37 @@ const char *HTML_CONTENT = R"=====(
             <div>
                 <span class="center" style="font-weight: bold;">Room Light</span>
                 <div class="state center" id="item1state">OFF</div>
-                <button class="btn-input" value="on" id="item1btn" onclick="onoffcommon(1)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item1btn" onclick="onofffunc(1)" style="margin-top:20px;">turn on</button>
             </div>
 
             <div>
                 <span class="center" style="font-weight: bold;">Night Light</span>
                 <div class="state center" id="item2state">OFF</div>
-                <button class="btn-input" value="on" id="item2btn" onclick="onoffcommon(2)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item2btn" onclick="onofffunc(2)" style="margin-top:20px;">turn on</button>
             </div>
 
             <div>
                 <span class="center" style="font-weight: bold;">Fan</span>
                 <div class="state center" id="item3state">OFF</div>
-                <button class="btn-input" value="on" id="item3btn" onclick="onoffcommon(3)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item3btn" onclick="onofffunc(3)" style="margin-top:20px;">turn on</button>
             </div>
 
             <div>
                 <span class="center" style="font-weight: bold;">Plug 1</span>
                 <div class="state center" id="item4state">OFF</div>
-                <button class="btn-input" value="on" id="item4btn" onclick="onoffcommon(4)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item4btn" onclick="onofffunc(4)" style="margin-top:20px;">turn on</button>
             </div>
 
             <div>
                 <span class="center" style="font-weight: bold;">Plug 2</span>
                 <div class="state center" id="item5state">OFF</div>
-                <button class="btn-input" value="on" id="item5btn" onclick="onoffcommon(5)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item5btn" onclick="onofffunc(5)" style="margin-top:20px;">turn on</button>
             </div>
 
             <div>
                 <span class="center" style="font-weight: bold;">Plug 3</span>
                 <div class="state center" id="item6state">OFF</div>
-                <button class="btn-input" value="on" id="item6btn" onclick="onoffcommon(6)" style="margin-top:20px;">turn on</button>
+                <button class="btn-input" value="on" id="item6btn" onclick="onofffunc(6)" style="margin-top:20px;">turn on</button>
             </div>
 
         </div>
