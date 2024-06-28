@@ -273,6 +273,11 @@ const char *HTML_CONTENT = R"=====(
             ws.send(jsonArray);
         }
 
+        function sendRGBdata(colorArray){
+            var jsoncolorArray = JSON.stringify(colorArray);
+            ws.send(jsoncolorArray);
+        }
+
         function onofffunc(num){
             let st = "item"+num+"state";
             let btn = "item"+num+"btn";
@@ -306,32 +311,7 @@ const char *HTML_CONTENT = R"=====(
             }
         }
 
-        // function onoffcommon(item){
-        //     switch(item){
-        //         case 1:
-        //             onofffunc("item1state", "item1btn", "item1");
-        //             break;
-        //         case 2:
-        //             onofffunc("item2state", "item2btn", "item2");
-        //             break;
-        //         case 3:
-        //             onofffunc("item3state", "item3btn", "item3");
-        //             break;
-        //         case 4:
-        //             onofffunc("item4state", "item4btn", "item4");
-        //             break;
-        //         case 5:
-        //             onofffunc("item5state", "item5btn", "item5");
-        //             break;
-        //         case 6:
-        //             onofffunc("item6state", "item6btn", "item6");
-        //             break;
-        //     }
-        // }
-
-
-
-
+//DATA RECEIVED FROM SERVER
         function ws_onmessage(e_msg) {
             e_msg = e_msg || window.event; // MessageEvent
             console.log(e_msg.data);
@@ -339,11 +319,20 @@ const char *HTML_CONTENT = R"=====(
             var msg = e_msg.data;
 
             var arraymsg = JSON.parse(msg);
+            if(arraymsg.length == 2){
+                console.log("Array length is 2");
 
-            let upItemState = arraymsg[0]+"state";
-            let upItemBtn = arraymsg[0]+"btn";
-            let upState = arraymsg[1];
-            updateOnOff(upItemState, upItemBtn, upState);
+                let upItemState = arraymsg[0]+"state";
+                let upItemBtn = arraymsg[0]+"btn";
+                let upState = arraymsg[1];
+                updateOnOff(upItemState, upItemBtn, upState);
+
+            }else if(arraymsg.length == 3){
+                console.log("Array length is 3");
+                updateRGBcolor(arraymsg);
+
+            }
+            
         }
 
         function updateOnOff(itemSt, itemBtn ,upst){
@@ -373,6 +362,48 @@ const char *HTML_CONTENT = R"=====(
             }
         }
 
+// UPDATE RGB DATA WHEN RECEIVED SERVER DATA
+        function updateRGBcolor(updteRGBarr){
+
+            let redvalue = 0;
+            let greenvalue = 0;
+            let bluevalue = 0;
+
+            let redbox = document.getElementById("redbox");
+            let greenbox = document.getElementById("greenbox");
+            let bluebox = document.getElementById("bluebox");
+
+            let redrange = document.getElementById("redrange");
+            let greenrange = document.getElementById("greenrange");
+            let bluerange = document.getElementById("bluerange");
+            let mixrgb = document.getElementById("mixrgb");
+
+            for(let i = 0; i<3; i++){
+                if(updteRGBarr[i][0]=="r"){
+                    redvalue = updteRGBarr[i][1];
+                }else if(updteRGBarr[i][0]=="g"){
+                    greenvalue = updteRGBarr[i][1];
+                }else if(updteRGBarr[i][0]=="b"){
+                    bluevalue = updteRGBarr[i][1];
+                }
+            }
+
+            redrange.value = redvalue;
+            greenrange.value = greenvalue;
+            bluerange.value = bluevalue;
+
+            redbox.textContent = redvalue;
+            redbox.style.background = "rgb("+redvalue+", 0, 0)";
+
+            greenbox.textContent = greenvalue;
+            greenbox.style.background = "rgb(0, "+greenvalue+", 0)";
+
+            bluebox.textContent = bluevalue;
+            bluebox.style.background = "rgb(0, 0, "+bluevalue+")";
+
+            mixrgb.style.background="rgb("+redvalue+", "+greenvalue+", "+bluevalue+")";
+        }
+//END
 
 
         // RGB LIGHT CONTROLL
@@ -407,6 +438,8 @@ const char *HTML_CONTENT = R"=====(
         function mixRGB(colorvalue){
             let mixrgb = document.getElementById("mixrgb");
             mixrgb.style.background="rgb("+redrange.value+", "+greenrange.value+", "+bluerange.value+")";
+            var RGBarray = [["r", redrange.value], ["g", greenrange.value], ["b", bluerange.value]];
+            sendRGBdata(RGBarray);
         }
 
     </script>
