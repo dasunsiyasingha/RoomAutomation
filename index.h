@@ -268,14 +268,22 @@ const char *HTML_CONTENT = R"=====(
 
         // SEND DATA AS A jsonArray to server(esp8266 nodemcu board)
         function senddata(itemnum, stvalue){
-            var array = [itemnum, stvalue];
-            var jsonArray = JSON.stringify(array);
-            ws.send(jsonArray);
+            // var array = [itemnum, stvalue];
+            var message = {
+                itemType: "switches",
+                valuesArray: [itemnum, stvalue]
+            };
+            var jsonMessage = JSON.stringify(message);
+            ws.send(jsonMessage);
         }
 
         function sendRGBdata(colorArray){
-            var jsoncolorArray = JSON.stringify(colorArray);
-            ws.send(jsoncolorArray);
+            var colrMessage = {
+                itemType: "rgb",
+                valuesArray: colorArray
+            };
+            var jsoncolrMessage = JSON.stringify(colrMessage);
+            ws.send(jsoncolrMessage);
         }
 
         function onofffunc(num){
@@ -318,19 +326,24 @@ const char *HTML_CONTENT = R"=====(
             
             var msg = e_msg.data;
 
-            var arraymsg = JSON.parse(msg);
-            if(arraymsg.length == 2){
+            var message = JSON.parse(msg);
+
+            console.log("RECEIVED MSG IS: ")
+            console.log(message);
+            let itemType = message.itemType;
+            var valuesArray = message.valuesArray;
+
+            if(itemType == "switches"){
                 console.log("Array length is 2");
 
-                let upItemState = arraymsg[0]+"state";
-                let upItemBtn = arraymsg[0]+"btn";
-                let upState = arraymsg[1];
+                let upItemState = valuesArray[0]+"state";
+                let upItemBtn = valuesArray[0]+"btn";
+                let upState = valuesArray[1];
                 updateOnOff(upItemState, upItemBtn, upState);
 
-            }else if(arraymsg.length == 3){
+            }else if(itemType == "rgb"){
                 console.log("Array length is 3");
-                updateRGBcolor(arraymsg);
-
+                updateRGBcolor(valuesArray);
             }
             
         }
@@ -364,10 +377,13 @@ const char *HTML_CONTENT = R"=====(
 
 // UPDATE RGB DATA WHEN RECEIVED SERVER DATA
         function updateRGBcolor(updteRGBarr){
-
             let redvalue = 0;
             let greenvalue = 0;
             let bluevalue = 0;
+
+            redvalue = updteRGBarr[0];
+            greenvalue = updteRGBarr[1];
+            bluevalue = updteRGBarr[2];
 
             let redbox = document.getElementById("redbox");
             let greenbox = document.getElementById("greenbox");
@@ -377,16 +393,6 @@ const char *HTML_CONTENT = R"=====(
             let greenrange = document.getElementById("greenrange");
             let bluerange = document.getElementById("bluerange");
             let mixrgb = document.getElementById("mixrgb");
-
-            for(let i = 0; i<3; i++){
-                if(updteRGBarr[i][0]=="r"){
-                    redvalue = updteRGBarr[i][1];
-                }else if(updteRGBarr[i][0]=="g"){
-                    greenvalue = updteRGBarr[i][1];
-                }else if(updteRGBarr[i][0]=="b"){
-                    bluevalue = updteRGBarr[i][1];
-                }
-            }
 
             redrange.value = redvalue;
             greenrange.value = greenvalue;
@@ -438,7 +444,7 @@ const char *HTML_CONTENT = R"=====(
         function mixRGB(colorvalue){
             let mixrgb = document.getElementById("mixrgb");
             mixrgb.style.background="rgb("+redrange.value+", "+greenrange.value+", "+bluerange.value+")";
-            var RGBarray = [["r", redrange.value], ["g", greenrange.value], ["b", bluerange.value]];
+            var RGBarray = [redrange.value, greenrange.value, bluerange.value];
             sendRGBdata(RGBarray);
         }
 
