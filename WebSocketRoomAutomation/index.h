@@ -1,11 +1,3 @@
-/*
- * This ESP8266 NodeMCU code was developed by newbiely.com
- *
- * This ESP8266 NodeMCU code is made available for public use without any restriction
- *
- * For comprehensive instructions and wiring diagrams, please visit:
- * https://newbiely.com/tutorials/esp8266/esp8266-websocket
- */
 
 const char *HTML_CONTENT = R"=====(
 <!DOCTYPE html>

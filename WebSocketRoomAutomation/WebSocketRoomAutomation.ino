@@ -1,11 +1,3 @@
-/*
- * This ESP8266 NodeMCU code was developed by newbiely.com
- *
- * This ESP8266 NodeMCU code is made available for public use without any restriction
- *
- * For comprehensive instructions and wiring diagrams, please visit:
- * https://newbiely.com/tutorials/esp8266/esp8266-websocket
- */
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
@@ -39,14 +31,17 @@ const int switch3pin = 4;   //D2
 const int switch4pin = 5;   //D1 
 const int switch5pin = 12;  //D6
 
-const int switch6pin = 13; 
+// const int switch6pin = 13; 
 
 //Relays: GPIO 16, GPIO 15, GPIO 14, GPIO 10, GPIO 9,             GPIO 3, GPIO 1, GPIO 7
-const int relay1 = 16;  //D0
-const int relay2 = 15;  //D8
-const int relay3 = 14;  //D5
-const int relay4 = 10;  //SD3
-const int relay5 = 9;   //SD2
+const int relay1 = 9;   //SD2
+const int relay2 = 10;  //SD3
+const int relay3 = 15;  //D8
+const int relay4 = 14;  //D5
+const int relay5 = 13;   //D7
+
+const int relay6 = 16;  //D0
+
 
 // const int relay5 = 3;
 // const int relay6 = 1;
@@ -148,9 +143,11 @@ void itemsOnOff(const String itemnum, const String state){
       if(state == "on"){
           Serial.println("Plug3 is On");
           allItemState[5][1] = state;
+          digitalWrite(relay6, HIGH);
       }else{
           Serial.println("Plug3 is Off");
           allItemState[5][1] = state;
+          digitalWrite(relay6, LOW);
       }
   }
 }
@@ -213,8 +210,18 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
   }
 }
 
+unsigned long currentMillis = 0;
+unsigned long previousMillis = 0;
+int leastTime = 1000;  
+
 void setup() {
   Serial.begin(9600);
+  digitalWrite(relay1, LOW);
+  digitalWrite(relay2, LOW);
+  digitalWrite(relay3, LOW);
+  digitalWrite(relay4, LOW);
+  digitalWrite(relay5, LOW);
+  digitalWrite(relay6, LOW);
   delay(500);
 
   // Connect to Wi-Fi
@@ -254,12 +261,10 @@ void setup() {
   pinMode(relay3,OUTPUT);
   pinMode(relay4,OUTPUT);
   pinMode(relay5,OUTPUT);
+  pinMode(relay6,OUTPUT);
 
-  digitalWrite(relay1, LOW);
-  digitalWrite(relay2, LOW);
-  digitalWrite(relay3, LOW);
-  digitalWrite(relay4, LOW);
-  digitalWrite(relay5, LOW);
+  
+
 
   // pinMode(relay6,OUTPUT);
   // pinMode(relay7,OUTPUT);
@@ -274,12 +279,16 @@ String swPrevState[][2] = {
   {"switch5", "1"}
 };
 
+
+
 void loop() {
   // Handle client requests
   server.handleClient();
 
   // Handle WebSocket events
   webSocket.loop();
+
+  currentMillis = millis() - previousMillis;
 
   int switch1val = digitalRead(switch1pin);
   int switch2val = digitalRead(switch2pin);
@@ -290,15 +299,17 @@ void loop() {
   int switchval[] = {switch1val, switch2val, switch3val, switch4val, switch5val};
 
 for(int i=0; i<5; i++){
-  if(swPrevState[i][1] != String(switchval[i])){
+  if(swPrevState[i][1] != String(switchval[i]) && currentMillis > leastTime){
     if(allItemState[i][1]=="off"){
       broadcastItemState(allItemState[i][0],"on");
       itemsOnOff(allItemState[i][0],"on");
       swPrevState[i][1] = String(switchval[i]);
+      previousMillis = millis();
     }else{
       broadcastItemState(allItemState[i][0],"off");
       itemsOnOff(allItemState[i][0],"off");
       swPrevState[i][1] = String(switchval[i]);
+      previousMillis = millis();
     }
   }
 }
